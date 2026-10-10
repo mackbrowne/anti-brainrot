@@ -1,0 +1,110 @@
+name: Release
+
+# Push a vX.Y.Z tag to build an APK for every variant in variants.json and
+# attach them to a GitHub Release. "Run workflow" (workflow_dispatch) builds the
+# same APKs as downloadable workflow artifacts instead, e.g. in a fork after
+# adding your own variant.
+#
+# Signing uses the repo secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD. Without them (e.g. a fresh fork)
+# the APKs are debug-signed, which installs fine but can't be updated by a
+# differently signed build later.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  variants:
+    runs-on: ubuntu-latest
+    outputs:
+      ids: ${{ steps.list.outputs.ids }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: list
+        run: echo "ids=$(node scripts/variants.js json-ids)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: variants
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ${{ fromJSON(needs.variants.outputs.ids) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Version from tag, Android SDK, signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+          # v1.2.3 -> versionName 1.2.3, versionCode 10203 (must grow with every
+          # release so Android and Obtainium treat it as an update).
+          if [[ "$GITHUB_REF_TYPE" = tag && "$GITHUB_REF_NAME" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+            echo "APP_VERSION_CODE=$(( BASH_REMATCH[1] * 10000 + BASH_REMATCH[2] * 100 + BASH_REMATCH[3] ))" >> "$GITHUB_ENV"
+          elif [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "::error::Release tags must look like v1.2.3 (got $GITHUB_REF_NAME)"; exit 1
+          fi
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            {
+              echo "ANDROID_KEYSTORE=$RUNNER_TEMP/release.jks"
+              echo "ANDROID_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+              echo "ANDROID_KEY_ALIAS=$KEY_ALIAS"
+              echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "::warning::No signing secrets set; building debug-signed APKs."
+          fi
+
+      - run: npm ci
+
+      - name: Build APK
+        run: |
+          scripts/build-android.sh ${{ matrix.variant }}
+          mkdir -p out
+          mv "dist/${{ matrix.variant }}.apk" "out/anti-brainrot-${{ matrix.variant }}.apk"
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apk-${{ matrix.variant }}
+          path: out/*.apk
+          if-no-files-found: error
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: apk-*
+          merge-multiple: true
+          path: out
+
+      # Asset names carry no version so README links can point at
+      # releases/latest/download/anti-brainrot-<id>.apk forever.
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: out/*.apk
+          generate_release_notes: true
+          fail_on_unmatched_files: true

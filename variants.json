@@ -1,0 +1,22 @@
+[
+  {
+    "id": "main",
+    "name": "Anti-Brainrot",
+    "appId": "app.antibrainrot",
+    "icon": "assets/variants/main/icon.png",
+    "adaptiveForeground": "assets/variants/main/adaptive-foreground.png",
+    "monochrome": "assets/variants/monochrome.png",
+    "color": "#FFFFFF",
+    "accent": "#0095F6"
+  },
+  {
+    "id": "two",
+    "name": "Anti-Brainrot 2",
+    "appId": "app.antibrainrot.two",
+    "icon": "assets/variants/two/icon.png",
+    "adaptiveForeground": "assets/variants/two/adaptive-foreground.png",
+    "monochrome": "assets/variants/monochrome.png",
+    "color": "#3A1C71",
+    "accent": "#8E5CF7"
+  }
+]
