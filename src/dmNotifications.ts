@@ -3,10 +3,13 @@ import * as Notifications from 'expo-notifications';
 import Storage from 'expo-sqlite/kv-store';
 import * as TaskManager from 'expo-task-manager';
 
+import { chatsWithNewMessages, newestTimestamp, type DmThread } from './dmFilter';
+
 // Instagram has no push for third-party apps, so a WorkManager job (~every
-// 15 min, later in Doze) polls the same unread-badge endpoint the web inbox
-// uses. On Android, React Native's fetch shares the WebView cookie jar, so the
-// job is logged in as whichever account this app instance is logged in as.
+// 15 min, later in Doze) polls the endpoints the web inbox uses. On Android,
+// React Native's fetch shares the WebView cookie jar, so the job is logged in
+// as whichever account this app instance is logged in as. It only notifies for
+// messages people actually sent (see dmFilter.ts), not forwarded reels/posts.
 
 export const DM_CHECK_TASK = 'dm-check';
 const CHANNEL = 'dms';
@@ -14,7 +17,8 @@ const NOTIFICATION_ID = 'dms';
 
 const IG = 'https://www.instagram.com';
 const IG_APP_ID = '1217981644879628'; // instagram.com mobile web client
-const KEY_LAST_BADGE = 'dm.lastBadge';
+// Everything at or before this server timestamp (microseconds) is handled.
+const KEY_HANDLED_THROUGH = 'dm.handledThroughUs';
 const KEY_USER_AGENT = 'dm.userAgent';
 
 async function igGet<T>(path: string): Promise<T> {
@@ -37,43 +41,37 @@ async function fetchBadgeCount(): Promise<number> {
   return badge_count;
 }
 
-type Thread = {
-  thread_title?: string;
-  users?: { username?: string }[];
-  last_seen_at?: Record<string, { timestamp?: string }>;
-  items?: { user_id?: string | number; timestamp?: string }[];
-};
-
-// Names of chats whose newest message is from someone else and newer than our
-// last-seen marker. Best effort: only used for the notification body.
-async function unreadChatNames(): Promise<string[]> {
-  const data = await igGet<{ viewer?: { pk?: string }; inbox: { threads: Thread[] } }>(
-    '/api/v1/direct_v2/inbox/?limit=20&thread_message_limit=1',
-  );
-  const me = String(data.viewer?.pk ?? '');
-  return data.inbox.threads
-    .filter((t) => {
-      const last = t.items?.[0];
-      const seen = Number(t.last_seen_at?.[me]?.timestamp ?? 0);
-      return last && String(last.user_id) !== me && Number(last.timestamp) > seen;
-    })
-    .map((t) => t.thread_title || t.users?.[0]?.username || '')
-    .filter(Boolean);
-}
+const nowUs = () => Date.now() * 1000;
 
 export async function checkForNewDms(): Promise<void> {
-  const badge = await fetchBadgeCount();
-  const last = Number((await Storage.getItem(KEY_LAST_BADGE)) ?? 0);
-  await Storage.setItem(KEY_LAST_BADGE, String(badge));
-  if (badge <= last) return;
+  const handledThrough = Number((await Storage.getItem(KEY_HANDLED_THROUGH)) ?? 0);
+  if (!handledThrough) {
+    // First run: only messages from now on are news.
+    await Storage.setItem(KEY_HANDLED_THROUGH, String(nowUs()));
+    return;
+  }
+  // Cheap gate: nothing unread means nothing to look at.
+  if ((await fetchBadgeCount()) === 0) return;
 
-  const names = await unreadChatNames().catch(() => []);
+  const data = await igGet<{ viewer?: { pk?: string }; inbox: { threads: DmThread[] } }>(
+    '/api/v1/direct_v2/inbox/?limit=20&thread_message_limit=10',
+  );
+  const chats = chatsWithNewMessages(data.inbox.threads, String(data.viewer?.pk ?? ''), handledThrough);
+  const newest = newestTimestamp(data.inbox.threads);
+  if (newest > handledThrough) await Storage.setItem(KEY_HANDLED_THROUGH, String(newest));
+  if (!chats.length) return; // only memes, reactions or things already seen
+
+  const total = chats.reduce((n, c) => n + c.count, 0);
+  const content =
+    chats.length === 1
+      ? {
+          title: chats[0].name,
+          body: chats[0].count > 1 ? `${chats[0].preview} (+${chats[0].count - 1} more)` : chats[0].preview,
+        }
+      : { title: `${total} new messages`, body: chats.slice(0, 4).map((c) => c.name).join(', ') };
   await Notifications.scheduleNotificationAsync({
     identifier: NOTIFICATION_ID, // replace, don't stack
-    content: {
-      title: badge === 1 ? '1 unread chat' : `${badge} unread chats`,
-      body: names.length ? names.slice(0, 4).join(', ') : 'Tap to open your inbox',
-    },
+    content,
     trigger: { channelId: CHANNEL },
   });
 }
@@ -114,7 +112,7 @@ export async function setupDmNotifications(): Promise<void> {
 // messages arriving after this point should notify.
 export async function markInboxSeen(): Promise<void> {
   await Notifications.dismissAllNotificationsAsync().catch(() => {});
-  await Storage.setItem(KEY_LAST_BADGE, String(await fetchBadgeCount()));
+  await Storage.setItem(KEY_HANDLED_THROUGH, String(nowUs()));
 }
 
 export async function rememberUserAgent(ua: string): Promise<void> {

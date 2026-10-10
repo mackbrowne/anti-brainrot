@@ -78,10 +78,14 @@ If Instagram changes its URL scheme again, edit `ALLOWED_IG_PATHS` in `src/polic
 Instagram's web push needs the browser Push API, which WebViews don't support.
 Instead, [`src/dmNotifications.ts`](src/dmNotifications.ts) registers a
 WorkManager job (`expo-background-task`, about every 15 minutes) that calls the
-web inbox's own `get_badge_count` endpoint. React Native's fetch shares the
-WebView's cookie jar, so each app checks its own account. When the unread count
-rises above what it was when you last left the app, the job posts a local
-notification. Expect delays of 15 minutes or more, longer in Doze.
+web inbox's own endpoints. React Native's fetch shares the WebView's cookie jar,
+so each app checks its own account. Expect delays of 15 minutes or more, longer
+in Doze.
+
+It only notifies for things people actually sent you since you last left the
+app: typed messages, photos and videos, voice notes, links and calls. Forwarded
+reels, posts and stories, likes, reactions and GIFs stay silent, and so do muted
+chats. The rules are in [`src/dmFilter.ts`](src/dmFilter.ts).
 
 To test without waiting: `adb shell cmd jobscheduler run -f <package> 0`.
 
