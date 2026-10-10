@@ -10,10 +10,23 @@ you in chats.
 Open this page on your Android phone and tap a button. Each app is a separate
 install with its own login, so you can use one per Instagram account.
 
-| | App | Download | Auto-updates |
-| --- | --- | --- | --- |
-| <img src="assets/variants/main/icon.png" width="48" alt=""> | **Anti-Brainrot** | [![Download APK](https://img.shields.io/badge/Download-APK-0095F6?style=for-the-badge&logo=android&logoColor=white)](https://github.com/mackbrowne/anti-brainrot/releases/latest/download/anti-brainrot-main.apk) | [<img src="assets/readme/badge-obtainium.png" height="40" alt="Get it on Obtainium">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.antibrainrot%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fmackbrowne%2Fanti-brainrot%22%2C%22author%22%3A%22Anti-Brainrot%22%2C%22name%22%3A%22Anti-Brainrot%22%2C%22additionalSettings%22%3A%22%7B%5C%22apkFilterRegEx%5C%22%3A%5C%22anti-brainrot-main%5C%5C%5C%5C.apk%5C%22%2C%5C%22appName%5C%22%3A%5C%22Anti-Brainrot%5C%22%2C%5C%22about%5C%22%3A%5C%22Instagram%20DMs%20without%20the%20brainrot%5C%22%7D%22%7D) |
-| <img src="assets/variants/two/icon.png" width="48" alt=""> | **Anti-Brainrot 2** (second account) | [![Download APK](https://img.shields.io/badge/Download-APK-8E5CF7?style=for-the-badge&logo=android&logoColor=white)](https://github.com/mackbrowne/anti-brainrot/releases/latest/download/anti-brainrot-two.apk) | [<img src="assets/readme/badge-obtainium.png" height="40" alt="Get it on Obtainium">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.antibrainrot.two%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fmackbrowne%2Fanti-brainrot%22%2C%22author%22%3A%22Anti-Brainrot%22%2C%22name%22%3A%22Anti-Brainrot%202%22%2C%22additionalSettings%22%3A%22%7B%5C%22apkFilterRegEx%5C%22%3A%5C%22anti-brainrot-two%5C%5C%5C%5C.apk%5C%22%2C%5C%22appName%5C%22%3A%5C%22Anti-Brainrot%202%5C%22%2C%5C%22about%5C%22%3A%5C%22Instagram%20DMs%20without%20the%20brainrot%5C%22%7D%22%7D) |
+### <img src="assets/variants/main/icon.png" width="36" align="center" alt=""> Anti-Brainrot
+
+For your main account.
+
+<p>
+  <a href="https://github.com/mackbrowne/anti-brainrot/releases/latest/download/anti-brainrot-main.apk"><img src="https://img.shields.io/badge/Download_APK-0095F6?style=for-the-badge&logo=android&logoColor=white" height="44" alt="Download APK"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.antibrainrot%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fmackbrowne%2Fanti-brainrot%22%2C%22author%22%3A%22Anti-Brainrot%22%2C%22name%22%3A%22Anti-Brainrot%22%2C%22additionalSettings%22%3A%22%7B%5C%22apkFilterRegEx%5C%22%3A%5C%22anti-brainrot-main%5C%5C%5C%5C.apk%5C%22%2C%5C%22appName%5C%22%3A%5C%22Anti-Brainrot%5C%22%2C%5C%22about%5C%22%3A%5C%22Instagram%20DMs%20without%20the%20brainrot%5C%22%7D%22%7D"><img src="assets/readme/badge-obtainium.png" height="44" alt="Get it on Obtainium"></a>
+</p>
+
+### <img src="assets/variants/two/icon.png" width="36" align="center" alt=""> Anti-Brainrot 2
+
+A second, separate app for another account.
+
+<p>
+  <a href="https://github.com/mackbrowne/anti-brainrot/releases/latest/download/anti-brainrot-two.apk"><img src="https://img.shields.io/badge/Download_APK-8E5CF7?style=for-the-badge&logo=android&logoColor=white" height="44" alt="Download APK"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.antibrainrot.two%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fmackbrowne%2Fanti-brainrot%22%2C%22author%22%3A%22Anti-Brainrot%22%2C%22name%22%3A%22Anti-Brainrot%202%22%2C%22additionalSettings%22%3A%22%7B%5C%22apkFilterRegEx%5C%22%3A%5C%22anti-brainrot-two%5C%5C%5C%5C.apk%5C%22%2C%5C%22appName%5C%22%3A%5C%22Anti-Brainrot%202%5C%22%2C%5C%22about%5C%22%3A%5C%22Instagram%20DMs%20without%20the%20brainrot%5C%22%7D%22%7D"><img src="assets/readme/badge-obtainium.png" height="44" alt="Get it on Obtainium"></a>
+</p>
 
 On a computer? Scan this with your phone to open the latest release:
 
@@ -22,7 +35,10 @@ On a computer? Scan this with your phone to open the latest release:
 1. Tap **Download APK**, then open the file.
 2. Android asks once to allow your browser to install apps. Allow it, then tap
    **Install**.
-3. Open the app, log in to Instagram, and allow notifications.
+3. Google Play Protect may say it hasn't seen this app before. That's normal
+   for apps from outside the Play Store: tap **Scan app** (it uploads the app
+   to Google for a check) or **More details → Install without scanning**.
+4. Open the app, log in to Instagram, and allow notifications.
 
 For automatic updates, install [Obtainium](https://obtainium.imranr.dev/) first
 and use its button instead: it adds the app and keeps it updated from this
